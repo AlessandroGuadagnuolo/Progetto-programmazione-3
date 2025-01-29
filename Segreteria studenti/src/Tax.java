@@ -1,15 +1,19 @@
-import java.sql.Date;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Random;
-
+import java.util.concurrent.ThreadLocalRandom;
 public class Tax {
-    private Date dataDiScadenza;
+    private LocalDate startDate = LocalDate.of(2024,12,1);
+    private LocalDate endDate = LocalDate.of(2025,12,1);
+    private long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
+    private LocalDate dataDiScadenza = startDate.plusDays(ThreadLocalRandom.current().nextLong(daysBetween + 1));
+
     private float costo;
     Random random = new Random();
     private short ID = (short) random.nextInt();
     private boolean stato = random.nextBoolean();
 
-    public Tax(Date dataDiScadenza, float costo) {
-        this.dataDiScadenza = dataDiScadenza;
+    public Tax(float costo) {
         this.costo = costo;
     }
 
@@ -17,7 +21,7 @@ public class Tax {
         return ID;
     }
 
-    public Date getExpiryDate() {
+    public LocalDate getExpiryDate() {
         return dataDiScadenza;
     }
 
