@@ -20,7 +20,7 @@ public class Tax {
     }
 
     public int getIdTax() {
-        return ID;
+        return id;
     }
 
     public LocalDate getExpiryDate() {

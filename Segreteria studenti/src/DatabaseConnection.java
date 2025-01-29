@@ -64,15 +64,6 @@ public class DatabaseConnection {
                 + "FOREIGN KEY (docente_id) REFERENCES Utente(id) ON DELETE CASCADE"
                 + ");";
 
-
-        String createTaxTable = "CREATE TABLE IF NOT EXISTS Tax ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "dataDiScadenza DATE NOT NULL,"
-                + "costo REAL,"
-                + "stato BOOLEAN,"
-                + "FOREIGN KEY (matricola) REFERENCES Studente(matricola) ON DELETE CASCADE"
-                + ");";
-
         String createPrenotazioniTable = "CREATE TABLE IF NOT EXISTS Prenotazioni ("
                 + "matricola_studente VARCHAR(50),"
                 + "codice_esame VARCHAR(20),"
@@ -89,6 +80,14 @@ public class DatabaseConnection {
                 + "nome TEXT NOT NULL"
                 + ")";
 
+        String createTaxTable = "CREATE TABLE IF NOT EXISTS Tax ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "dataDiScadenza DATE NOT NULL,"
+                + "costo REAL,"
+                + "stato BOOLEAN,"
+                + "FOREIGN KEY (matricola) REFERENCES Studente(matricola) ON DELETE CASCADE"
+                + ");";
+
         try (Connection conn = connect()) {
             if (conn != null) {
                 try (PreparedStatement stmt1 = conn.prepareStatement(createUtenteTable);
@@ -98,7 +97,8 @@ public class DatabaseConnection {
                         PreparedStatement stmt5 = conn.prepareStatement(createEsameTable);
                         PreparedStatement stmt6 = conn.prepareStatement(createAppelloTable);
                         PreparedStatement stmt7 = conn.prepareStatement(createPrenotazioniTable);
-                        PreparedStatement stmt8 = conn.prepareStatement(createCorsoTable)) {
+                        PreparedStatement stmt8 = conn.prepareStatement(createCorsoTable)
+                        PreparedStatement stmt9 = conn.prepareStatement(createTaxTable)) {
 
                     stmt1.executeUpdate();
                     System.out.println("Tabella Utente creata o già esistente.");
