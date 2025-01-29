@@ -1,4 +1,4 @@
-public class UtenteConcreteFactory extends UtenteFactory {
+public class UtenteConcreteFactory implements UtenteFactory {
 
     public static Utente creaUtente(String ruolo, String nome, String cognome) {
         switch (ruolo.toLowerCase()) {
@@ -7,7 +7,7 @@ public class UtenteConcreteFactory extends UtenteFactory {
             case "docente":
                 return new Docente(nome, cognome);
             case "segreteria":
-                return new Segreteria(nome, cognome);
+                return new UtenteSegreteria(nome, cognome);
             default:
                 throw new IllegalArgumentException("Ruolo non valido: " + ruolo);
         }

@@ -2,6 +2,9 @@ import java.sql.Date;
 import java.util.List;
 import java.util.Scanner;
 
+
+
+
 public class Studente extends Utente {
     private String matricola; // chiave primaria
     private Date dataNascita;
