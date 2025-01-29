@@ -1,0 +1,8 @@
+prima di procedere voglio capire come funziona questo metodo, a cosa serve split, 
+a estrarre le informazioni dal messaggio ricevuto tramite il mediator ? 
+come fà il docente a gestire la richiesta, nel senso, se io dall'applicazione faccio la prenotazione, 
+quando viene gestita ? è automatico ? altra cosa che non mi è chiara, 
+io non ho bisogno di controllare se l'esame esiste se l'appello esiste, 
+io devo semplicemente gestire la richiesta di prenotazione dello studente 
+(dove ho già ampiamente controllato tutto prima di effettuare la richiesta di questa prenotazione), 
+in più il limite posti 

@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Esegui MainFrame",
+            "request": "launch",
+            "mainClass": "MainFrame",
+            "projectName": "Segreteria studenti"
+        }
+    ]
+}

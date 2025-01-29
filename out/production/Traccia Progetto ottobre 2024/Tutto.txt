@@ -1,0 +1,640 @@
+public abstract class Utente {
+    private String nome;
+    private String cognome;
+    private List<String> messaggi = new ArrayList<>();
+
+    public Utente(String nome, String cognome) {
+        this.nome = nome;
+        this.cognome = cognome;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getCognome() {
+        return cognome;
+    }
+
+    public void setCognome(String cognome) {
+        this.cognome = cognome;
+    }
+
+    public void riceviMessaggio(String messaggio) {
+        messaggi.add(messaggio);
+        System.out.println("Nuovo messaggio per " + getNome() + " " + getCognome() + ": " + messaggio);
+    }
+
+    public List<String> getMessaggi() {
+        return messaggi;
+    }
+
+}
+
+
+public abstract class UtenteFactory {
+    public abstract Studente creaStudente(String nome, String cognome);
+
+    public abstract Docente creaDocente(String nome, String cognome);
+
+    public abstract Segreteria creaSegreteria(String nome, String cognome);
+}
+
+
+public class Studente extends Utente {
+    private String matricola; // chiave primaria
+    private Date dataNascita;
+    private String residenza;
+    private List<Esame> esami; // lista degli esami del corso di appartenenza
+    private Corso pianoDiStudi; // indica il mio corso di laurea scelto
+    private List<Esame> esamiSuperati;
+    private List<Esame> testCompletati;
+    private boolean tasse; // visualizzare una notifica o un messaggio che ricordi di pagarle in caso sia
+                           // FALSE
+    private Mediator mediator;
+
+    public Studente(String nome, String cognome) {
+        super(nome, cognome);
+    }
+
+    public String getMatricola() {
+        return matricola;
+    }
+
+    public void setPianoDiStudi(Corso pianoDiStudi) {
+        this.pianoDiStudi = pianoDiStudi;
+    }
+
+    public void setEsami(List<Esame> esami) {
+        this.esami = esami;
+    }
+
+    public void effettuaPrenotazione(String nomeEsame, Date dataAppello) {
+        // cerco l'esame per nome
+        Esame esameTrovato = null;
+        for (Esame esame : pianoDiStudi.getEsami()) {
+            if (esame.getNome().equalsIgnoreCase(nomeEsame)) {
+                esameTrovato = esame;
+                break;
+            }
+        }
+        if (esameTrovato == null) {
+            System.out.println("Esame non trovato nel piano di studi.");
+            return;
+        }
+
+        // visualizzo gli appelli
+        List<Appello> appelli = esameTrovato.getAppelli();
+        if (appelli.isEmpty()) {
+            System.out.println("Nessun appello disponibile per questo esame.");
+            return;
+        }
+        System.out.println("Appelli disponibili:");
+        for (Appello appello : appelli) {
+            System.out.println("- Data: " + appello.getData());
+        }
+
+        // scelgo l'appello
+        Appello appelloSelezionato = null;
+        for (Appello appello : appelli) {
+            if (appello.getData().equals(dataAppello)) {
+                appelloSelezionato = appello;
+                break;
+            }
+        }
+        if (appelloSelezionato == null) {
+            System.out.println("Appello non trovato per la data specificata.");
+            return;
+        }
+
+        // verifico se il test di valutazione è stato superato
+        if (!testCompletati.contains(esameTrovato)) {
+            System.out.println("Test di valutazione non superato. Devi completarlo prima di prenotarti.");
+            return;
+        }
+
+        // controllo se l'esame è gia stato superato
+        if (esamiSuperati.contains(esameTrovato)) {
+            System.out.println("Hai già superato questo esame.");
+            return;
+        }
+
+        // effettuo la prenotazione
+        appelloSelezionato.aggiungiStudente(this);
+        System.out.println("Prenotazione completata per l'appello del " + dataAppello);
+        if (mediator != null) {
+            String messaggio = "Lo studente " + getMatricola() + " ha prenotato l'appello di "
+                    + esameTrovato.getNome() + " in data " + dataAppello.toString();
+            mediator.inviaMessaggio(messaggio, this, appelloSelezionato.getDocente());
+        }
+    }
+
+    public void gestioneVoto() {
+
+    }
+
+    public void effettuaTest(String nomeEsame) {
+        // prima ricerco l'esame nel mio piano di studi
+        Esame esameDaTestare = null;
+        for (Esame esame : pianoDiStudi.getEsami()) {
+            if (esame.getNome().equalsIgnoreCase(nomeEsame)) {
+                esameDaTestare = esame;
+                break;
+            }
+        }
+
+        // se non c'è stampo un messaggio di errore
+        if (esameDaTestare == null) {
+            System.out.println("Errore: L'esame inserito non fa parte del tuo piano di studi.");
+            return;
+        }
+
+        // controllo se il test è già stato superato
+        if (testCompletati.contains(esameDaTestare)) {
+            System.out.println("Test già superato per questo esame.");
+            return;
+        }
+
+        // genero casualmente il risultato del test
+        boolean testSuperato = Math.random() < 0.7; // math.random() genera un numero tra 0 e <1, se il valore è minore
+                                                    // di 0.8 la funzione ritorna TRUE altrimenti FALSE (probablità 70%
+                                                    // che ritorni TRUE)
+
+        if (testSuperato) {
+            testCompletati.add(esameDaTestare); // Registra il test come completato
+            System.out.println("Test superato! Ora puoi prenotarti per l'esame.");
+        } else {
+            System.out.println("Test non superato. Riprova.");
+        }
+    }
+
+    public void setMediator(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    public void inviaMessaggio(String messaggio, String docenteCognome) {
+        Utente destinatario = mediator.trovaUtente(docenteCognome);
+        mediator.inviaMessaggio(messaggio, this, destinatario);
+    }
+
+}
+
+
+public class StudenteFactory extends UtenteFactory {
+    private String nomeCorsoDiLaurea;
+
+    public StudenteFactory(String nomeCorsoDiLaurea) {
+        this.nomeCorsoDiLaurea = nomeCorsoDiLaurea;
+    }
+
+    @Override
+    public Utente creaUtente() {
+        Studente studente = new Studente();
+        Corso pianoDiStudi = Corso.creaCorsoDiLaurea(nomeCorsoDiLaurea);
+        studente.setPianoDiStudi(pianoDiStudi);
+        studente.setEsami(pianoDiStudi.getEsami());
+        return studente;
+    }
+
+    @Override
+    public Studente creaStudente(String nome, String cognome) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Docente creaDocente(String nome, String cognome) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Segreteria creaSegreteria(String nome, String cognome) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+}
+
+
+public class SistemaUtenteFactory extends UtenteFactory {
+
+    @Override
+    public Studente creaStudente(String nome, String cognome) {
+        return new Studente(nome, cognome);
+    }
+
+    @Override
+    public Docente creaDocente(String nome, String cognome) {
+        return new Docente(nome, cognome);
+    }
+
+    @Override
+    public Segreteria creaSegreteria(String nome, String cognome) {
+        return new Segreteria(nome, cognome);
+    }
+}
+
+
+
+public class Segreteria extends Utente {
+
+    public Segreteria(String nome, String cognome) {
+        super(nome, cognome);
+    }
+
+    public void inserisciStudente() {
+
+    }
+
+    public void visualizzaInformazioni() {
+
+    }
+
+    public void visualizzaEsiti() {
+
+    }
+}
+
+
+public class SegreteriaFactory implements UtenteFactory {
+    @Override
+    public Utente creaUtente() {
+        return new Segreteria();
+    }
+}
+
+
+
+public interface Mediator {
+    void inviaMessaggio(String messaggio, Utente mittente, Utente destinatario);
+
+    void registraUtente(Utente utente);
+
+    Utente trovaUtente(String cognome);
+}
+
+
+public class Esame {
+    private String codiceEsame; // univoco per ogni esame
+    private String nome;
+    private int crediti;
+    private Docente docente; // aggiunto riferimento al docente responsabile dell'esame
+    private List<Appello> appelli;
+
+    public Esame(String codiceEsame, String nome, int crediti, Docente docente) {
+        this.codiceEsame = codiceEsame;
+        this.nome = nome;
+        this.crediti = crediti;
+        this.docente = docente;
+        this.appelli = new ArrayList<>();
+    }
+
+    // Getter e setter
+    public String getCodiceEsame() {
+        return codiceEsame;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public int getCrediti() {
+        return crediti;
+    }
+
+    public Docente getDocente() {
+        return docente;
+    }
+
+    public void setDocente(Docente docente) {
+        this.docente = docente;
+    }
+
+    public List<Appello> getAppelli() {
+        return appelli;
+    }
+}
+
+
+
+public class Docente extends Utente {
+    private List<Esame> esamiInsegnati;
+    private Mediator mediator;
+    Scanner scanner;
+
+    public Docente(String nome, String cognome) {
+        super(nome, cognome);
+    }
+
+    // visualizzo *solo* gli esami che insegna
+    public List<Esame> getEsamiInsegnati(List<Esame> tuttiGliEsami) {
+        esamiInsegnati = new ArrayList<>();
+        for (Esame esame : tuttiGliEsami) {
+            if (esame.getDocente().getCognome().equals(this.getCognome())) {
+                esamiInsegnati.add(esame);
+            }
+        }
+        return esamiInsegnati;
+    }
+
+    public void inserisciAppello() {
+
+    }
+
+    public void inserisciVoto() {
+        // Seleziona un esame tra quelli insegnati
+        System.out.println("Inserisci il nome dell'esame:");
+        String nomeEsame = scanner.nextLine();
+
+        Esame esameSelezionato = null;
+        for (Esame esame : esamiInsegnati) {
+            if (esame.getNome().equalsIgnoreCase(nomeEsame)) {
+                esameSelezionato = esame;
+                break;
+            }
+        }
+
+        if (esameSelezionato == null) {
+            System.out.println("Esame non trovato tra quelli insegnati.");
+            return;
+        }
+
+        // Seleziona un appello per data
+        System.out.println("Inserisci la data dell'appello (formato: yyyy-MM-dd):");
+        String dataInput = scanner.nextLine();
+        Date dataAppello = Date.valueOf(dataInput); // Conversione stringa -> Date
+
+        Appello appelloSelezionato = null;
+        for (Appello appello : esameSelezionato.getAppelli()) {
+            if (appello.getData().equals(dataAppello)) {
+                appelloSelezionato = appello;
+                break;
+            }
+        }
+
+        if (appelloSelezionato == null) {
+            System.out.println("Appello non trovato.");
+            return;
+        }
+
+        // Visualizza gli studenti prenotati
+        List<Studente> studentiPrenotati = appelloSelezionato.getStudentiPrenotati();
+        if (studentiPrenotati.isEmpty()) {
+            System.out.println("Nessuno studente è prenotato per questo appello.");
+            return;
+        }
+
+        System.out.println("Studenti prenotati:");
+        for (Studente studente : studentiPrenotati) {
+            System.out.println("- " + studente.getNome() + " " + studente.getCognome() + " (Matricola: "
+                    + studente.getMatricola() + ")");
+        }
+
+        // Seleziona uno studente per matricola
+        System.out.println("Inserisci la matricola dello studente:");
+        String matricola = scanner.nextLine();
+
+        Studente studenteSelezionato = null;
+        for (Studente studente : studentiPrenotati) {
+            if (studente.getMatricola().equals(matricola)) {
+                studenteSelezionato = studente;
+                break;
+            }
+        }
+
+        if (studenteSelezionato == null) {
+            System.out.println("Studente non trovato tra i prenotati.");
+            return;
+        }
+
+        // Genera un voto casuale (probabilità più alta tra 18 e 30)
+        int voto = generaVotoCasuale();
+        System.out.println("Voto generato: " + voto);
+
+        // Invia il voto allo studente tramite il Mediator
+        String messaggio = String.format(
+                "Esame: %s, Data: %s, Voto: %d",
+                esameSelezionato.getNome(),
+                dataAppello,
+                voto);
+        inviaMessaggio(messaggio, studenteSelezionato.getCognome());
+        System.out.println("Voto inviato allo studente.");
+    }
+
+    // Metodo per generare un voto casuale
+    private int generaVotoCasuale() {
+        Random random = new Random();
+        int probabilita = random.nextInt(100); // Genera un numero tra 0 e 99
+        if (probabilita < 60) {
+            // 60% di probabilità tra 18 e 30
+            return 18 + random.nextInt(13); // [18, 30]
+        } else {
+            // 40% di probabilità tra 0 e 17
+            return random.nextInt(18); // [0, 17]
+        }
+    }
+
+    public void setMediator(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    public void inviaMessaggio(String messaggio, String studenteCognome) {
+        Utente destinatario = mediator.trovaUtente(studenteCognome);
+        mediator.inviaMessaggio(messaggio, this, destinatario);
+    }
+
+}
+
+
+public class DocenteFactory implements UtenteFactory {
+    @Override
+    public Utente creaUtente() {
+        return new Docente();
+    }
+}
+
+
+public class DatabaseConnection {
+
+    private static final String protocol = "jdbc:sqlite:";
+
+    public static Connection connect() {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(protocol + "db.sqlite");
+            System.out.println("Connessione al database stabilita!");
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return conn;
+    }
+
+    public static void createTables() {
+        String createStudentiTable = "CREATE TABLE IF NOT EXISTS Studente ("
+                + "matricola INTEGER PRIMARY KEY,"
+                + "nome TEXT NOT NULL,"
+                + "cognome TEXT NOT NULL,"
+                + "data_nascita TEXT,"
+                + "residenza TEXT,"
+                + "piano_studi TEXT,"
+                + "tasse_pagate BOOLEAN DEFAULT 0"
+                + ");";
+
+        String createCorsiTable = "CREATE TABLE IF NOT EXISTS Corso ("
+                + "codice INTEGER PRIMARY KEY,"
+                + "nome TEXT NOT NULL,"
+                + "docente TEXT"
+                + ");";
+
+        String createEsamiTable = "CREATE TABLE IF NOT EXISTS Esame ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "studente_matricola INTEGER,"
+                + "corso_codice INTEGER,"
+                + "voto INTEGER,"
+                + "data_sostenuto TEXT,"
+                + "FOREIGN KEY (studente_matricola) REFERENCES Studenti(matricola),"
+                + "FOREIGN KEY (corso_codice) REFERENCES Corso(codice)"
+                + ");";
+
+        String createPrenotazioniTable = "CREATE TABLE IF NOT EXISTS Prenotazioni ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "studente_matricola INTEGER,"
+                + "esame_id INTEGER,"
+                + "data_appello TEXT,"
+                + "FOREIGN KEY (studente_matricola) REFERENCES Studente(matricola),"
+                + "FOREIGN KEY (esame_id) REFERENCES Esame(id)"
+                + ");";
+
+        try (Connection conn = connect()) {
+            if (conn != null) {
+                try (PreparedStatement stmt1 = conn.prepareStatement(createStudentiTable);
+                        PreparedStatement stmt2 = conn.prepareStatement(createCorsiTable);
+                        PreparedStatement stmt3 = conn.prepareStatement(createEsamiTable);
+                        PreparedStatement stmt4 = conn.prepareStatement(createPrenotazioniTable)) {
+
+                    stmt1.executeUpdate();
+                    System.out.println("Tabella Studente creata o già esistente.");
+
+                    stmt2.executeUpdate();
+                    System.out.println("Tabella Corso creata o già esistente.");
+
+                    stmt3.executeUpdate();
+                    System.out.println("Tabella Esame creata o già esistente.");
+
+                    stmt4.executeUpdate();
+                    System.out.println("Tabella Prenotazioni creata o già esistente.");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+
+
+public class Corso {
+    private String codiceCorso;
+    private String nome;
+    private List<Esame> esami;
+
+    public Corso(String codiceCorso, String nome) {
+        this.codiceCorso = codiceCorso;
+        this.nome = nome;
+        this.esami = new ArrayList<>();
+    }
+
+    public List<Esame> getEsami() {
+        return esami;
+    }
+
+    public static Corso creaCorsoDiLaurea(String nomeCorso) {
+        Corso corso;
+        switch (nomeCorso) {
+            case "Informatica":
+                corso = new Corso("INF", "Informatica");
+                corso.esami.add(new Esame("INF101", "Programmazione 1", 9, ));
+                corso.esami.add(new Esame("INF102", "Sistemi Operativi", 12));
+                corso.esami.add(new Esame("INF103", "Basi di Dati", 9));
+                break;
+            case "Scienze Nautiche":
+                corso = new Corso("SNA", "Scienze Nautiche");
+                corso.esami.add(new Esame("SNA101", "Navigazione", 8));
+                corso.esami.add(new Esame("SNA102", "Meteorologia", 6));
+                corso.esami.add(new Esame("SNA103", "Fisica", 5));
+                break;
+            case "Ingegneria Gestionale":
+                corso = new Corso("ING", "Ingegneria Gestionale");
+                corso.esami.add(new Esame("ING101", "Economia Aziendale", 7));
+                corso.esami.add(new Esame("ING102", "Gestione della Produzione", 6));
+                corso.esami.add(new Esame("ING103", "Informatica per la Gestione", 5));
+                break;
+            default:
+                throw new IllegalArgumentException("Corso di laurea non valido");
+        }
+        return corso;
+    }
+}
+
+
+
+public class ConcreteMediator implements Mediator {
+    private Map<String, Utente> utentiRegistrati;
+
+    public ConcreteMediator() {
+        utentiRegistrati = new HashMap<>();
+    }
+
+    @Override
+    public void inviaMessaggio(String messaggio, Utente mittente, Utente destinatario) {
+        if (destinatario != null) {
+            System.out
+                    .println("Messaggio da " + mittente.getNome() + " a " + destinatario.getNome() + ": " + messaggio);
+        } else {
+            System.out.println("Destinatario non trovato!");
+        }
+    }
+
+    @Override
+    public void registraUtente(Utente utente) {
+        utentiRegistrati.put(utente.getCognome(), utente); // Uso il cognome come chiave
+    }
+
+    @Override
+    public Utente trovaUtente(String cognome) {
+        return utentiRegistrati.get(cognome);
+    }
+}
+
+
+public class Appello {
+    private Date data;
+    private Esame esame;
+    private Docente docente;
+    private List<Studente> studentiPrenotati;
+
+    public Appello(Date data, Esame e, Docente d) {
+        this.data = data;
+        this.esame = e;
+        this.docente = d;
+        this.studentiPrenotati = new ArrayList<>();
+    }
+
+    public void aggiungiStudente(Studente studente) {
+        if (!studentiPrenotati.contains(studente)) {
+            studentiPrenotati.add(studente);
+        }
+    }
+
+    public Esame getEsame() {
+        return esame;
+    }
+
+    public Date getData() {
+        return data;
+    }
+
+    public Docente getDocente() {
+        return docente;
+    }
+}
