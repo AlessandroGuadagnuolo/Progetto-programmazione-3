@@ -64,6 +64,15 @@ public class DatabaseConnection {
                 + "FOREIGN KEY (docente_id) REFERENCES Utente(id) ON DELETE CASCADE"
                 + ");";
 
+
+        String createTaxTable = "CREATE TABLE IF NOT EXISTS Tax ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "dataDiScadenza DATE NOT NULL,"
+                + "costo REAL,"
+                + "stato BOOLEAN,"
+                + "FOREIGN KEY (matricola) REFERENCES Studente(matricola) ON DELETE CASCADE"
+                + ");";
+
         String createPrenotazioniTable = "CREATE TABLE IF NOT EXISTS Prenotazioni ("
                 + "matricola_studente VARCHAR(50),"
                 + "codice_esame VARCHAR(20),"
@@ -72,6 +81,8 @@ public class DatabaseConnection {
                 + "FOREIGN KEY (matricola_studente) REFERENCES Studente(matricola) ON DELETE CASCADE,"
                 + "FOREIGN KEY (codice_esame, data_appello) REFERENCES Appello(codice_esame, data) ON DELETE CASCADE"
                 + ");";
+
+
 
         String createCorsoTable = "CREATE TABLE IF NOT EXISTS Corso ("
                 + "codice_corso TEXT PRIMARY KEY,"

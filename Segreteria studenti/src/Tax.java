@@ -9,9 +9,10 @@ public class Tax {
     private long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
     private LocalDate dataDiScadenza = startDate.plusDays(ThreadLocalRandom.current().nextLong(daysBetween + 1));
 
+    private Studente studente;
     private float costo;
     Random random = new Random();
-    private short ID = (short) random.nextInt();
+    private short id = (short) random.nextInt();
     private boolean stato = random.nextBoolean();
 
     public Tax(float costo) {
@@ -33,6 +34,4 @@ public class Tax {
     public float getAmount() {
         return costo;
     }
-
-    //domenico
 }
