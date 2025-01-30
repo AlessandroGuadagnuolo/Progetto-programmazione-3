@@ -97,7 +97,7 @@ public class DatabaseConnection {
                         PreparedStatement stmt5 = conn.prepareStatement(createEsameTable);
                         PreparedStatement stmt6 = conn.prepareStatement(createAppelloTable);
                         PreparedStatement stmt7 = conn.prepareStatement(createPrenotazioniTable);
-                        PreparedStatement stmt8 = conn.prepareStatement(createCorsoTable)
+                        PreparedStatement stmt8 = conn.prepareStatement(createCorsoTable);
                         PreparedStatement stmt9 = conn.prepareStatement(createTaxTable)) {
 
                     stmt1.executeUpdate();
